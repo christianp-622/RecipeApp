@@ -17,7 +17,7 @@ private enum Constants {
 
 struct RecipeListView: View {
     
-    @StateObject var viewModel = RecipesViewModel(endpoint: .recipesData)
+    @StateObject var viewModel = RecipesViewModel(endpoint: .malformedData)
 
     var body: some View {
         NavigationView {

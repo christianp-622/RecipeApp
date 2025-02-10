@@ -39,7 +39,6 @@ extension CacheFileStorage: CacheFileStorageProtocol{
         
         do {
             try fileManager.write(data: data, to: filePath)
-            //print("✅ Image saved to disk: \(filePath.path)")
         } catch {
             throw FileManagerError.fileSaveFailed(error)
         }
