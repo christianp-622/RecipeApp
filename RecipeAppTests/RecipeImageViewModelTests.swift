@@ -34,7 +34,6 @@ final class RecipeImageViewModelTests: XCTestCase {
         // THEN
         XCTAssertTrue(apiServiceMock.verifyDidCallFetchImage())
         XCTAssertTrue(cacheMock.verifyImageWasAdded(for: imageId, and: expectedImage))
-        XCTAssertNil(viewModel.errorMessage)
     }
 
     func test_loadImage_withValidImageURL_butFetchfrom_cache() async throws {
@@ -62,10 +61,12 @@ final class RecipeImageViewModelTests: XCTestCase {
         // THEN
         
         // Verify we only got image from cache and not api service
-        XCTAssertTrue(cacheMock.verifyGetImageCalled())
-        XCTAssertFalse(apiServiceMock.verifyDidCallFetchImage())
-        XCTAssertNil(viewModel.errorMessage)
-        XCTAssertNotNil(viewModel.image)
+        if case .loaded(let image) = viewModel.viewState {
+            XCTAssertTrue(cacheMock.verifyGetImageCalled())
+            XCTAssertFalse(apiServiceMock.verifyDidCallFetchImage())
+        } else {
+            XCTFail("Should be in loaded state")
+        }
     }
     
     func test_loadImage_withNilURL() async {
@@ -85,12 +86,14 @@ final class RecipeImageViewModelTests: XCTestCase {
         await viewModel.loadImage()
         
         // THEN
-        let errorDescription = viewModel.errorMessage
-        let expectedErrorDescription = FetchError.nilURL.errorDescription
-        XCTAssertEqual(errorDescription, expectedErrorDescription)
+        if case .errorMessage(let message) = viewModel.viewState {
+            XCTAssertEqual(message, FetchError.nilURL.errorDescription)
+        } else {
+            XCTFail("Should be in error state when url is nil")
+        }
+        
         XCTAssertFalse(cacheMock.verifyGetImageCalled())
         XCTAssertFalse(apiServiceMock.verifyDidCallFetchImage())
-        XCTAssertNil(viewModel.image)
     }
     
     func test_loadImage_throwsErrorFromAPIService_fetchError() async throws {
@@ -116,10 +119,11 @@ final class RecipeImageViewModelTests: XCTestCase {
         await viewModel.loadImage()
         
         // THEN
-        let errorDescription = viewModel.errorMessage
-        let expectedErrorDescription = error.errorDescription
-        XCTAssertEqual(errorDescription, expectedErrorDescription)
-        XCTAssertNil(viewModel.image)
+        if case .errorMessage(let message) = viewModel.viewState {
+            XCTAssertEqual(message, error.errorDescription)
+        } else {
+            XCTFail("Shoul be in error state when fetch error")
+        }
     }
     
     func test_loadImage_throwsErrorFromAPIService_unexpectedError() async throws {
@@ -144,9 +148,10 @@ final class RecipeImageViewModelTests: XCTestCase {
         await viewModel.loadImage()
         
         // THEN
-        let errorDescription = viewModel.errorMessage
-        let expectedErrorDescription = FetchError.unexpected.errorDescription
-        XCTAssertEqual(errorDescription, expectedErrorDescription)
-        XCTAssertNil(viewModel.image)
+        if case .errorMessage(let message) = viewModel.viewState {
+            XCTAssertEqual(message, FetchError.unexpected.errorDescription)
+        } else {
+            XCTFail("Shoul be in error state when fetch error")
+        }
     }
 }

@@ -21,40 +21,52 @@ struct RecipeListView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                if viewModel.isLoading {
+            Group {
+                switch viewModel.viewState {
+                case .idle:
                     ProgressView(Constants.progressViewText)
                         .padding()
-                    
-                } else if isEmptyRecipesErrorMessage() {
-                    Text("No recipes available at this Moment :(")
-                    
-                } else {
-                    List(viewModel.recipes) { recipe in
-                        RecipeRowView(recipe: recipe)
-                    }
+                case .loading:
+                   ProgressView(Constants.progressViewText)
+                       .padding()
+                case .loaded(let recipes):
+                   List(recipes) { recipe in
+                       RecipeRowView(recipe: recipe)
+                   }
+                case .errorMessage(let message):
+                   if message == FetchError.emptyRecipeData.errorDescription {
+                       Text("No recipes available at this Moment :(")
+                   }
                 }
             }
             .navigationTitle(Constants.navigationTitleText)
-            .refreshable {
-                await viewModel.refreshRecipes()
+        }
+        .refreshable {
+            await viewModel.refreshRecipes()
+        }
+        .task {
+            await viewModel.loadRecipes()
+        }
+        .alert(Constants.alertTitleText, isPresented: Binding<Bool>(
+            get: {
+                if case .errorMessage(let message) = viewModel.viewState,
+                   message != FetchError.emptyRecipeData.errorDescription {
+                    return true
+                }
+                return false
+            },
+            set: { newValue in
+                if !newValue {
+                    viewModel.viewState = .idle
+                }
             }
-            .task {
-                await viewModel.loadRecipes()
-            }
-            .alert(Constants.alertTitleText, isPresented: Binding<Bool>(
-                get: { viewModel.errorMessage != nil && !isEmptyRecipesErrorMessage() },
-                set: { if !$0 { viewModel.errorMessage = nil } }
-            )) {
-                Button(Constants.alertButtonTitleText, role: .cancel) { }
-            } message: {
-                Text(viewModel.errorMessage ?? Constants.backupErrorMessage)
+        )) {
+            Button(Constants.alertButtonTitleText, role: .cancel) { }
+        } message: {
+            if case .errorMessage(let message) = viewModel.viewState {
+                Text(message ?? Constants.backupErrorMessage)
             }
         }
-    }
-    
-    func isEmptyRecipesErrorMessage() -> Bool {
-        return viewModel.errorMessage == FetchError.emptyRecipeData.errorDescription
     }
 }
 

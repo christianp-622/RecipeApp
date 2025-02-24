@@ -9,9 +9,8 @@ import Foundation
 import SwiftUI
 
 final class RecipesViewModel: ObservableObject {
-    @Published var recipes: [Recipe] = []
-    @Published var errorMessage: String? = nil
-    @Published var isLoading: Bool = false
+    
+    @Published var viewState: ViewState<[Recipe]> = .idle
     
     private let apiService: RecipeAPIServiceProtocol
     private let cache: ImageCacheProtocol
@@ -28,19 +27,16 @@ final class RecipesViewModel: ObservableObject {
     }
     
     func loadRecipes() async {
-        await setLoadingState(true)
-        await setErrorState(nil)
+        await setLoadingState()
         
         do {
             let fetchedRecipes = try await apiService.fetchRecipes(from: endpoint)
-            await setReciesState(fetchedRecipes)
+            await setRecipesState(fetchedRecipes)
         } catch let error as FetchError {
             await setErrorState(error.errorDescription)
         } catch {
             await setErrorState(FetchError.unexpected.errorDescription)
         }
-        
-        await setLoadingState(false)
     }
     
     func refreshRecipes() async {
@@ -52,19 +48,22 @@ final class RecipesViewModel: ObservableObject {
 // MARK: - MainActor Helpers
 @MainActor
 private extension RecipesViewModel {
-    func setLoadingState(_ isLoading: Bool) {
-        self.isLoading = isLoading
+    func setLoadingState() {
+        self.viewState = .loading
     }
     
     func setErrorState(_ message: String?) {
-        self.errorMessage = message
+        self.viewState = .errorMessage(message)
     }
     
-    func setReciesState(_ recipes: [Recipe]) {
-        self.recipes = recipes
+    func setRecipesState(_ recipes: [Recipe]) {
+        self.viewState = .loaded(recipes)
     }
     
     func setshuffleRecipesState() {
-        self.recipes.shuffle()
+        if case .loaded(var recipes) = viewState {
+            recipes.shuffle()
+            self.viewState = .loaded(recipes)
+        }
     }
 }

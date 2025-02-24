@@ -15,9 +15,8 @@ import SwiftUI
  */
 
 final class RecipeImageViewModel: ObservableObject {
-    @Published var image: UIImage? = nil
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String? = nil
+    
+    @Published var viewState: ViewState<UIImage> = .idle
     
     private let cache: ImageCacheProtocol
     private let apiService: RecipeAPIServiceProtocol
@@ -52,7 +51,7 @@ final class RecipeImageViewModel: ObservableObject {
         }
         
         // Initiate download
-        await setLoadingState(true)
+        await setLoadingState()
         
         do {
             let endpoint = Endpoint.image(path: path)
@@ -67,25 +66,21 @@ final class RecipeImageViewModel: ObservableObject {
         } catch {
             await setErrorState(FetchError.unexpected.errorDescription)
         }
-        
-        await setLoadingState(false)
     }
-    
 }
 
 // MARK: - MainActor Helpers
 @MainActor
 private extension RecipeImageViewModel {
     func updateImage(_ image: UIImage) {
-        self.image = image
+        self.viewState = .loaded(image)
     }
     
-    func setLoadingState(_ isLoading: Bool) {
-        self.isLoading = isLoading
+    func setLoadingState() {
+        self.viewState = .loading
     }
     
     func setErrorState(_ message: String?) {
-        self.errorMessage = message
-        self.image = nil
+        self.viewState = .errorMessage(message)
     }
 }

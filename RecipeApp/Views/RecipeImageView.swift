@@ -20,19 +20,28 @@ struct RecipeImageView: View {
 
     var body: some View {
         ZStack {
-            if viewModel.isLoading {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
-            } else if let image = viewModel.image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .transition(.opacity)
-            } else {
+            switch viewModel.viewState {
+            case .idle:
+               Image("FoodIcon")
+                   .resizable()
+                   .scaledToFit()
+                   .opacity(0.5)
+               
+            case .loading:
+               ProgressView()
+                   .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+               
+            case .loaded(let image):
+               Image(uiImage: image)
+                   .resizable()
+                   .scaledToFit()
+                   .transition(.opacity)
+               
+            case .errorMessage:
                 Image("FoodIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .opacity(0.5)
+                   .resizable()
+                   .scaledToFit()
+                   .opacity(0.5)
             }
         }
         .onAppear {

@@ -53,8 +53,11 @@ final class RecipesViewModelTests: XCTestCase {
         await viewModel.loadRecipes()
         
         // THEN
-        XCTAssertNil(viewModel.errorMessage)
-        XCTAssertEqual(viewModel.recipes, expectedRecipes)
+        if case .loaded(let recipes) = viewModel.viewState {
+            XCTAssertEqual(recipes, expectedRecipes)
+        } else {
+            XCTFail("Should be in loaded state")
+        }
     }
     
     func test_loadRecipes_throwsFetchError() async throws {
@@ -75,7 +78,11 @@ final class RecipesViewModelTests: XCTestCase {
         await viewModel.loadRecipes()
         
         // THEN
-        XCTAssertEqual(viewModel.errorMessage, expectedError.errorDescription)
+        if case .errorMessage(let message) = viewModel.viewState {
+            XCTAssertEqual(message, expectedError.errorDescription)
+        } else {
+            XCTFail("Should be in error state")
+        }
     }
     
     func test_loadRecipes_throwsUnexpectedError() async throws {
@@ -96,7 +103,11 @@ final class RecipesViewModelTests: XCTestCase {
         await viewModel.loadRecipes()
         
         // THEN
-        XCTAssertEqual(viewModel.errorMessage, FetchError.unexpected.errorDescription)
+        if case .errorMessage(let message) = viewModel.viewState {
+            XCTAssertEqual(message, FetchError.unexpected.errorDescription)
+        } else {
+            XCTFail("Should be in error state")
+        }
     }
     
     func test_refreshRecipes() async {
@@ -123,7 +134,11 @@ final class RecipesViewModelTests: XCTestCase {
         apiServiceMock.recipesToReturn = originalRecipes
         await viewModel.loadRecipes()
         
-        XCTAssertEqual(viewModel.recipes, originalRecipes)
+        if case .loaded(let recipes) = viewModel.viewState {
+            XCTAssertEqual(recipes, originalRecipes)
+        } else {
+            XCTFail("Should be in loaded state")
+        }
         
         // WHEN
         await viewModel.refreshRecipes()
@@ -132,8 +147,12 @@ final class RecipesViewModelTests: XCTestCase {
         
         // List should not be the same now, should be shuffled
         // (very small chance they are in the same order)
-        XCTAssertNotEqual(viewModel.recipes, originalRecipes)
-        XCTAssert(cacheMock.verifyClearCacheWasCalled())
+        if case .loaded(let recipes) = viewModel.viewState {
+            XCTAssertNotEqual(recipes, originalRecipes)
+        } else {
+            XCTFail("Should be in loaded state")
+        }
+        XCTAssertTrue(cacheMock.verifyClearCacheWasCalled())
     }
 
 }
