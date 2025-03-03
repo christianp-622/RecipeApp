@@ -12,7 +12,6 @@ Error Handling & Modularity:
   
 Performance Optimization:
 - Implementing a hybrid caching system to optimize network requests.
-- Simulating real-world scenarios, such as handling thousands of images similar to Instagram, to ensure the app performs well under load.
 
 Below is a demo showcasing the UI along with detailed notes on my thought process, the trade-offs made during development, and the time taken to complete the project.
 
