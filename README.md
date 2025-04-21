@@ -35,15 +35,6 @@ Testing:
 
 Testing is the most important aspect of ensuring app stability. I needed to ensure that my code was set up in such a way that allowed for dependency injection, to test modules that are crucial to the apps health. Not only that, it was important to cover as much code as possible. If anyone were to come in to work on this project, and alter behavior of the classes, they would be met with hopefully a failed test case to make them aware of the expected functionality. Tests help prevent regressions and facilitate future contributions. 
 
-### Time Spent
-I dedicated approximately 60-70 hours to the project, primarily during weekends, while managing a full-time job during the week
-
 ### Trade-offs and Decisions
 I wasn't able to spend as much time on the UI of the application as I would have liked. The backend was prioritized to ensure core functionality, even if it meant compromising on advanced UI features. I did face a trade off between creating an in memory cache or an on-disk cache. While the project specification called for an on-disk cache, I implemented a hybrid cache that leverages both on-disk persistence and the speed of an in-memory cache. This decision balanced performance with data persistence, despite the extra complexity.
-
-### Weakest Part of the Project
-While the UI is functional, it could be significantly enhanced by incorporating additional features, such as a filtering option, a search bar, and external links for the provided URLs. I believe that my approach to mocking could be more consistent as well. For instance, using standardized methods like didCall() or implementing a custom parameter matcher would ensure that the correct data is passed through. Overall, the mocks became somewhat disorganized, likely due to my familiarity with more structured frameworks like Cuckoo.
-
-### Additional Information
-Just general constraints with managing my time working on this application outside of work for my current position.
 
